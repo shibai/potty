@@ -34,6 +34,9 @@ public class ElectionManager extends Thread {
 	protected static AtomicReference<ElectionManager> instance = new AtomicReference<ElectionManager>();
 
 	private String nodeId;
+	
+	private String leaderId;
+	private boolean ack;
 
 	/** @brief the number of votes this server can cast */
 	private int votes = 1;
@@ -77,13 +80,25 @@ public class ElectionManager extends Thread {
 
 		if (req.getVote().getNumber() == VoteAction.ELECTION_VALUE) {
 			// an election is declared!
+			// set leader to null
+			
 		} else if (req.getVote().getNumber() == VoteAction.DECLAREVOID_VALUE) {
 			// no one was elected, I am dropping into standby mode`
+			// left void
 		} else if (req.getVote().getNumber() == VoteAction.DECLAREWINNER_VALUE) {
 			// some node declared themself the leader
+			// set leader
 		} else if (req.getVote().getNumber() == VoteAction.ABSTAIN_VALUE) {
 			// for some reason, I decline to vote
+			// left void
 		} else if (req.getVote().getNumber() == VoteAction.NOMINATE_VALUE) {
+			
+			// send back acks if necessary 
+			// send out request and set timeout 
+			
+			
+			
+			
 			int comparedToMe = req.getNodeId().compareTo(nodeId);
 			if (comparedToMe == -1) {
 				// Someone else has a higher priority, forward nomination
@@ -91,6 +106,36 @@ public class ElectionManager extends Thread {
 			} else if (comparedToMe == 1) {
 				// I have a higher priority, nominate myself
 				// TODO nominate myself
+			}
+		} // else if receive acks, set flag to true
+	}
+	
+	@Override
+	public void run () {
+		while (true) {
+			// check failures of leader
+			while (leaderId != nodeId && leaderId != null) {
+				try {
+					Thread.sleep(5000);
+
+					// if failures are detected, start a new election
+
+					// } catch (InterruptedException ie) {
+					// break;
+				} catch (Exception e) {
+					break;
+				}
+			}
+
+			// during election, waiting for acks
+			while (leaderId == null && !ack) {
+				try {
+					// timer's running
+					// check for ack flag
+				} catch (Exception e) {
+					e.printStackTrace();
+					break;
+				}
 			}
 		}
 	}
