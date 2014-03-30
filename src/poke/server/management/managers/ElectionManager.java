@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import poke.server.management.ManagementQueue;
 import eye.Comm.LeaderElection;
 import eye.Comm.Management;
 import eye.Comm.LeaderElection.VoteAction;
@@ -71,27 +72,42 @@ public class ElectionManager extends Thread {
 		// send declaration to all higher ids
 		heartbeatMgr = HeartbeatManager.getInstance();
 		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
-			LeaderElection.Builder l = LeaderElection.newBuilder();
-			//l.setBallotId();
-			l.setNodeId(nodeId);
-			l.setBallotId("1");
-			l.setVote(VoteAction.ELECTION);
-			l.setDesc("New election!");
-			
-			Management.Builder m = Management.newBuilder();
-			m.setElection(l.build());
-			
-			Channel channel = null;
-			if (hd.isGood()) {
-				channel = hd.getChannel();
+			if (compIds(hd.getNodeId(), nodeId)) {
+				LeaderElection.Builder l = LeaderElection.newBuilder();
+				l.setBallotId("1");
+				l.setNodeId(nodeId);
+				l.setBallotId("1");
+				l.setVote(VoteAction.ELECTION);
+				l.setDesc("New election!");
+
+				Management.Builder m = Management.newBuilder();
+				m.setElection(l.build());
+
+				Channel channel = null;
+				if (hd.isGood()) {
+					channel = hd.getChannel();
+				}
+
+				ManagementQueue.enqueueResponse(m.build(), channel);
 			}
-			
-			
 		}
 		
 	}
+	/*
+	 * compare node ids
+	 * - Shibai
+	 */
+	private boolean compIds (String id1, String id2) {
+		if (Integer.parseInt(id1) > Integer.parseInt(id2)) {
+			return true;
+		}
+		return false;
+	}
+	
+	
 
 	/**
+	 * - Shibai
 	 * @param args
 	 */
 	public void processRequest(LeaderElection req) {
@@ -138,6 +154,13 @@ public class ElectionManager extends Thread {
 		} // else if receive acks, set flag to true
 	}
 	
+	/*
+	 * 
+	 * 
+	 * - Shibai
+	 * (non-Javadoc)
+	 * @see java.lang.Thread#run()
+	 */
 	@Override
 	public void run () {
 		while (true) {
