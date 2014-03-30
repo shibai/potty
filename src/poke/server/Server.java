@@ -282,6 +282,7 @@ public class Server {
 		
 		// move electionmgr down here
 		electionMgr = ElectionManager.getInstance(myId, votes);
+		electionMgr.start();
 		logger.info("Server " + myId + ", managers initialized");
 	}
 

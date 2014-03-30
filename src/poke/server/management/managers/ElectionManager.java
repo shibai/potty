@@ -84,6 +84,7 @@ public class ElectionManager extends Thread {
 		leaderId = null;
 		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
 			sendRequest(hd, VoteAction.ELECTION,"New election!!");
+			System.out.println("broadcasting: " + hd.getNodeId());
 		}
 	}
 	
@@ -93,6 +94,10 @@ public class ElectionManager extends Thread {
 	 */
 	private void declareElection () {
 		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
+			System.out.println("debug: incoming id: " + hd.getNodeId());
+
+			System.out.println("debug: my id: " + nodeId);
+			
 			if (compIds(hd.getNodeId(), nodeId)) {
 				sendRequest(hd, VoteAction.NOMINATE,"Nomination!");
 			}
@@ -116,9 +121,8 @@ public class ElectionManager extends Thread {
 		Channel channel = null;
 		if (hd.isGood()) {
 			channel = hd.getChannel();
+			ManagementQueue.enqueueResponse(m.build(), channel);
 		}
-
-		ManagementQueue.enqueueResponse(m.build(), channel);
 	}
 	
 	/*
@@ -164,6 +168,7 @@ public class ElectionManager extends Thread {
 			leaderId = req.getNodeId();
 			myElection = false;
 			ack = false;
+			System.out.println("ok, new leader is: " + leaderId);
 		} else if (req.getVote().getNumber() == VoteAction.ABSTAIN_VALUE) {
 			// for some reason, I decline to vote
 			// work as ack for now
@@ -230,10 +235,10 @@ public class ElectionManager extends Thread {
 					if (failure > 3) {
 						// Broadcast: I am the new leader!
 						leaderId = nodeId;
-						ack = false;
 						for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
 							sendRequest(hd, VoteAction.DECLAREWINNER,"I am the new leader!!");
 						}
+						System.out.println(nodeId + ": ok, im the new leader");
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
