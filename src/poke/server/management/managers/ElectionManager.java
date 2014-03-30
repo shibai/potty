@@ -39,9 +39,10 @@ public class ElectionManager extends Thread {
 
 	private String nodeId;
 	
-	//
+	// Shibai
 	private String leaderId;
 	private boolean ack;
+	private boolean myElection;
 	private HeartbeatManager heartbeatMgr;
 
 	/** @brief the number of votes this server can cast */
@@ -78,22 +79,10 @@ public class ElectionManager extends Thread {
 	 * - Shibai
 	 */
 	private void broadCastNewElection() {
+		myElection = true;
+		ack = false;
 		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
-			LeaderElection.Builder l = LeaderElection.newBuilder();
-			l.setNodeId(nodeId);
-			l.setBallotId("1");
-			l.setVote(VoteAction.ELECTION);
-			l.setDesc("New election!");
-
-			Management.Builder m = Management.newBuilder();
-			m.setElection(l.build());
-
-			Channel channel = null;
-			if (hd.isGood()) {
-				channel = hd.getChannel();
-			}
-
-			ManagementQueue.enqueueResponse(m.build(), channel);
+			sendRequest(hd, VoteAction.ELECTION,"New election!!");
 		}
 	}
 	
@@ -104,23 +93,31 @@ public class ElectionManager extends Thread {
 	private void declareNewElection () {
 		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
 			if (compIds(hd.getNodeId(), nodeId)) {
-				LeaderElection.Builder l = LeaderElection.newBuilder();
-				l.setNodeId(nodeId);
-				l.setBallotId("1");
-				l.setVote(VoteAction.NOMINATE);
-				l.setDesc("I am a candidate!");
-
-				Management.Builder m = Management.newBuilder();
-				m.setElection(l.build());
-
-				Channel channel = null;
-				if (hd.isGood()) {
-					channel = hd.getChannel();
-				}
-
-				ManagementQueue.enqueueResponse(m.build(), channel);
+				sendRequest(hd, VoteAction.NOMINATE,"Nomination!");
 			}
 		}
+	}
+	
+	/*
+	 * send out request
+	 * - Shibai
+	 */
+	private void sendRequest (HeartbeatData hd, eye.Comm.LeaderElection.VoteAction voteAction,String desc) {
+		LeaderElection.Builder l = LeaderElection.newBuilder();
+		l.setNodeId(nodeId);
+		l.setBallotId("1");
+		l.setVote(voteAction);
+		l.setDesc(desc);
+
+		Management.Builder m = Management.newBuilder();
+		m.setElection(l.build());
+
+		Channel channel = null;
+		if (hd.isGood()) {
+			channel = hd.getChannel();
+		}
+
+		ManagementQueue.enqueueResponse(m.build(), channel);
 	}
 	
 	/*
@@ -152,7 +149,10 @@ public class ElectionManager extends Thread {
 
 		if (req.getVote().getNumber() == VoteAction.ELECTION_VALUE) {
 			// an election is declared!
-			// set leader to null
+			myElection = false;
+			leaderId = null;
+			ack = false;
+			// stop receiving new jobs
 			
 		} else if (req.getVote().getNumber() == VoteAction.DECLAREVOID_VALUE) {
 			// no one was elected, I am dropping into standby mode`
@@ -166,18 +166,20 @@ public class ElectionManager extends Thread {
 		} else if (req.getVote().getNumber() == VoteAction.NOMINATE_VALUE) {
 			
 			// send back acks if necessary 
-			// send out request and set timeout 
-			
-			
-			
-			
+			// send out request and set timeout 	
 			int comparedToMe = req.getNodeId().compareTo(nodeId);
 			if (comparedToMe == -1) {
 				// Someone else has a higher priority, forward nomination
 				// TODO forward
+				// left void. Since we are using bully algorithm, would never receive nominations from higher ids
 			} else if (comparedToMe == 1) {
 				// I have a higher priority, nominate myself
 				// TODO nominate myself
+				if (!myElection) {
+					myElection = true;
+					
+					
+				}
 			}
 		} // else if receive acks, set flag to true
 	}
