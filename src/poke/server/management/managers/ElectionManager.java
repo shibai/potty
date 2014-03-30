@@ -67,18 +67,48 @@ public class ElectionManager extends Thread {
 
 		if (votes >= 0)
 			this.votes = votes;
-		
-		// start a new election
-		// send declaration to all higher ids
+
 		heartbeatMgr = HeartbeatManager.getInstance();
+		broadCastNewElection();
+		declareNewElection();
+	}
+	
+	/*
+	 * Broadcast in network that a new election is coming
+	 * - Shibai
+	 */
+	private void broadCastNewElection() {
+		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
+			LeaderElection.Builder l = LeaderElection.newBuilder();
+			l.setNodeId(nodeId);
+			l.setBallotId("1");
+			l.setVote(VoteAction.ELECTION);
+			l.setDesc("New election!");
+
+			Management.Builder m = Management.newBuilder();
+			m.setElection(l.build());
+
+			Channel channel = null;
+			if (hd.isGood()) {
+				channel = hd.getChannel();
+			}
+
+			ManagementQueue.enqueueResponse(m.build(), channel);
+		}
+	}
+	
+	/*
+	 * send declaration to all higher ids
+	 * - Shibai
+	 */
+	private void declareNewElection () {
 		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
 			if (compIds(hd.getNodeId(), nodeId)) {
 				LeaderElection.Builder l = LeaderElection.newBuilder();
-				l.setBallotId("1");
 				l.setNodeId(nodeId);
 				l.setBallotId("1");
-				l.setVote(VoteAction.ELECTION);
-				l.setDesc("New election!");
+				l.setVote(VoteAction.NOMINATE);
+				l.setDesc("I am a candidate!");
 
 				Management.Builder m = Management.newBuilder();
 				m.setElection(l.build());
@@ -91,8 +121,8 @@ public class ElectionManager extends Thread {
 				ManagementQueue.enqueueResponse(m.build(), channel);
 			}
 		}
-		
 	}
+	
 	/*
 	 * compare node ids
 	 * - Shibai
@@ -104,8 +134,6 @@ public class ElectionManager extends Thread {
 		return false;
 	}
 	
-	
-
 	/**
 	 * - Shibai
 	 * @param args
