@@ -263,7 +263,7 @@ public class Server {
 		int votes = 1;
 		if (str != null)
 			votes = Integer.parseInt(str);
-		electionMgr = ElectionManager.getInstance(myId, votes);
+		// electionMgr = ElectionManager.getInstance(myId, votes);
 
 		// create manager for accepting jobs
 		jobMgr = JobManager.getInstance(myId);
@@ -279,7 +279,9 @@ public class Server {
 		// manage heartbeatMgr connections
 		HeartbeatConnector conn = HeartbeatConnector.getInstance();
 		conn.start();
-
+		
+		// move electionmgr down here
+		electionMgr = ElectionManager.getInstance(myId, votes);
 		logger.info("Server " + myId + ", managers initialized");
 	}
 

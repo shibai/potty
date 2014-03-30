@@ -15,12 +15,15 @@
  */
 package poke.server.management.managers;
 
+import io.netty.channel.Channel;
+
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eye.Comm.LeaderElection;
+import eye.Comm.Management;
 import eye.Comm.LeaderElection.VoteAction;
 
 /**
@@ -35,8 +38,10 @@ public class ElectionManager extends Thread {
 
 	private String nodeId;
 	
+	//
 	private String leaderId;
 	private boolean ack;
+	private HeartbeatManager heartbeatMgr;
 
 	/** @brief the number of votes this server can cast */
 	private int votes = 1;
@@ -61,6 +66,29 @@ public class ElectionManager extends Thread {
 
 		if (votes >= 0)
 			this.votes = votes;
+		
+		// start a new election
+		// send declaration to all higher ids
+		heartbeatMgr = HeartbeatManager.getInstance();
+		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
+			LeaderElection.Builder l = LeaderElection.newBuilder();
+			//l.setBallotId();
+			l.setNodeId(nodeId);
+			l.setBallotId("1");
+			l.setVote(VoteAction.ELECTION);
+			l.setDesc("New election!");
+			
+			Management.Builder m = Management.newBuilder();
+			m.setElection(l.build());
+			
+			Channel channel = null;
+			if (hd.isGood()) {
+				channel = hd.getChannel();
+			}
+			
+			
+		}
+		
 	}
 
 	/**
@@ -117,7 +145,7 @@ public class ElectionManager extends Thread {
 			while (leaderId != nodeId && leaderId != null) {
 				try {
 					Thread.sleep(5000);
-
+					
 					// if failures are detected, start a new election
 
 					// } catch (InterruptedException ie) {
