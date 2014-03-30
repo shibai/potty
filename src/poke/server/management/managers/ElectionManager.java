@@ -71,7 +71,7 @@ public class ElectionManager extends Thread {
 
 		heartbeatMgr = HeartbeatManager.getInstance();
 		broadCastNewElection();
-		declareNewElection();
+		declareElection();
 	}
 	
 	/*
@@ -81,6 +81,7 @@ public class ElectionManager extends Thread {
 	private void broadCastNewElection() {
 		myElection = true;
 		ack = false;
+		leaderId = null;
 		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
 			sendRequest(hd, VoteAction.ELECTION,"New election!!");
 		}
@@ -90,7 +91,7 @@ public class ElectionManager extends Thread {
 	 * send declaration to all higher ids
 	 * - Shibai
 	 */
-	private void declareNewElection () {
+	private void declareElection () {
 		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
 			if (compIds(hd.getNodeId(), nodeId)) {
 				sendRequest(hd, VoteAction.NOMINATE,"Nomination!");
@@ -160,11 +161,15 @@ public class ElectionManager extends Thread {
 		} else if (req.getVote().getNumber() == VoteAction.DECLAREWINNER_VALUE) {
 			// some node declared themself the leader
 			// set leader
+			leaderId = req.getNodeId();
+			myElection = false;
+			ack = false;
 		} else if (req.getVote().getNumber() == VoteAction.ABSTAIN_VALUE) {
 			// for some reason, I decline to vote
-			// left void
-		} else if (req.getVote().getNumber() == VoteAction.NOMINATE_VALUE) {
+			// work as ack for now
+			ack = true;
 			
+		} else if (req.getVote().getNumber() == VoteAction.NOMINATE_VALUE) {
 			// send back acks if necessary 
 			// send out request and set timeout 	
 			int comparedToMe = req.getNodeId().compareTo(nodeId);
@@ -177,15 +182,22 @@ public class ElectionManager extends Thread {
 				// TODO nominate myself
 				if (!myElection) {
 					myElection = true;
-					
-					
+					sendAck(req);
+					declareElection();
 				}
 			}
 		} // else if receive acks, set flag to true
 	}
 	
+	
+	private void sendAck (LeaderElection req) {
+		HeartbeatData hd = heartbeatMgr.incomingHB.get(req.getNodeId());
+		sendRequest(hd,VoteAction.NOMINATE,"ACK"); // change nominate to ack
+		
+	}
+	
+	
 	/*
-	 * 
 	 * 
 	 * - Shibai
 	 * (non-Javadoc)
@@ -197,22 +209,32 @@ public class ElectionManager extends Thread {
 			// check failures of leader
 			while (leaderId != nodeId && leaderId != null) {
 				try {
-					Thread.sleep(5000);
-					
+					Thread.sleep(2000);
+					HeartbeatData hd = heartbeatMgr.incomingHB.get(leaderId);
 					// if failures are detected, start a new election
-
-					// } catch (InterruptedException ie) {
-					// break;
+					if (hd.getFailures() > 2) {
+						broadCastNewElection();
+						declareElection();
+					}
 				} catch (Exception e) {
 					break;
 				}
 			}
 
 			// during election, waiting for acks
+			int failure = 0;
 			while (leaderId == null && !ack) {
 				try {
-					// timer's running
-					// check for ack flag
+					Thread.sleep(1000);
+					failure++;
+					if (failure > 3) {
+						// Broadcast: I am the new leader!
+						leaderId = nodeId;
+						ack = false;
+						for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
+							sendRequest(hd, VoteAction.DECLAREWINNER,"I am the new leader!!");
+						}
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 					break;
