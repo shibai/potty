@@ -84,7 +84,7 @@ public class ElectionManager extends Thread {
 		leaderId = null;
 		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
 			sendRequest(hd, VoteAction.ELECTION,"New election!!");
-			System.out.println("broadcasting: " + hd.getNodeId());
+			// System.out.println("broadcasting: " + hd.getNodeId());
 		}
 	}
 	
@@ -94,9 +94,9 @@ public class ElectionManager extends Thread {
 	 */
 	private void declareElection () {
 		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
-			System.out.println("debug: incoming id: " + hd.getNodeId());
+			// System.out.println("debug: incoming id: " + hd.getNodeId());
 
-			System.out.println("debug: my id: " + nodeId);
+			// System.out.println("debug: my id: " + nodeId);
 			
 			if (compIds(hd.getNodeId(), nodeId)) {
 				sendRequest(hd, VoteAction.NOMINATE,"Nomination!");
@@ -117,10 +117,12 @@ public class ElectionManager extends Thread {
 
 		Management.Builder m = Management.newBuilder();
 		m.setElection(l.build());
-
+		System.out.println("11111111111111111");
 		Channel channel = null;
 		if (hd.isGood()) {
 			channel = hd.getChannel();
+
+			System.out.println("22222222222222222");
 			ManagementQueue.enqueueResponse(m.build(), channel);
 		}
 	}
@@ -141,6 +143,8 @@ public class ElectionManager extends Thread {
 	 * @param args
 	 */
 	public void processRequest(LeaderElection req) {
+		System.out.println("!!!! get a leaderelection request!!!!!!");
+		
 		if (req == null)
 			return;
 
