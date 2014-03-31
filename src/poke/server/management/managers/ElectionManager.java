@@ -243,6 +243,7 @@ public class ElectionManager extends Thread {
 							sendRequest(hd, VoteAction.DECLAREWINNER,"I am the new leader!!");
 						}
 						System.out.println(nodeId + ": ok, im the new leader");
+						break;
 					}
 				} catch (Exception e) {
 					e.printStackTrace();

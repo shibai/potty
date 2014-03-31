@@ -205,13 +205,13 @@ public class HeartbeatManager extends Thread {
 				// increment failure from time to time
 				// numbers will be set to zero in processRequest()
 				// - Shibai
-				/*
+				
 				if (incomingHB.size() > 0) {
 					for (HeartbeatData hd : incomingHB.values()) {
 						hd.incrementFailures();
 					}
 				}
-				*/
+				
 				
 				// ignore until we have edges with other nodes
 				if (outgoingHB.size() > 0) {
