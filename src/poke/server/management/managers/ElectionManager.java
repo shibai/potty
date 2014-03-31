@@ -121,7 +121,7 @@ public class ElectionManager extends Thread {
 		m.setElection(l.build());
 		
 		
-		Channel channel = ManagementQueue.connect(hd.getHost(),hd.getMgmtport()).channel();
+		Channel channel = ManagementQueue.connect(hd.getHost(),hd.getPort()).channel();
 		
 		try {
 			channel.writeAndFlush(m.build());
