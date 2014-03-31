@@ -16,6 +16,7 @@
 package poke.server.management.managers;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -119,17 +120,11 @@ public class ElectionManager extends Thread {
 		Management.Builder m = Management.newBuilder();
 		m.setElection(l.build());
 		
-		//Channel channel = null;
-		//if (hd.isGood()) {
-			//channel = hd.getChannel();
-
-			System.out.println("22222222222222222");
-			//ManagementQueue.enqueueResponse(m.build(), channel);
-			//hd.channel.writeAndFlush(m.build());
-		//}
-			
+		
+		Channel channel = ManagementQueue.connect(hd.getHost(),hd.getMgmtport()).channel();
+		
 		try {
-			hd.channel.writeAndFlush(m.build());
+			channel.writeAndFlush(m.build());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
