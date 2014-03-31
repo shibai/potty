@@ -88,10 +88,13 @@ public class InboundMgmtWorker extends Thread {
 					 * Incoming are connections this node establishes, which is
 					 * handled by the HeartbeatConnector.
 					 */
+					System.out.println("heartbeat");
 					HeartbeatManager.getInstance().processRequest(req.getBeat());
 				} else if (req.hasElection()) {
+					System.out.println("Election");
 					ElectionManager.getInstance().processRequest(req.getElection());
 				} else if (req.hasGraph()) {
+					System.out.println("Network");
 					NetworkManager.getInstance().processRequest(req.getGraph(), msg.channel, msg.sa);
 				} else if (req.hasJobBid()) {
 					JobManager.getInstance().processRequest(req.getJobBid());

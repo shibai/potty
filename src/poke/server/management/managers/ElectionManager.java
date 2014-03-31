@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import poke.server.management.ManagementQueue;
+import eye.Comm.Heartbeat;
 import eye.Comm.LeaderElection;
 import eye.Comm.Management;
 import eye.Comm.LeaderElection.VoteAction;
@@ -82,7 +83,7 @@ public class ElectionManager extends Thread {
 		myElection = true;
 		ack = false;
 		leaderId = null;
-		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
+		for (HeartbeatData hd : heartbeatMgr.outgoingHB.values()) {
 			sendRequest(hd, VoteAction.ELECTION,"New election!!");
 			// System.out.println("broadcasting: " + hd.getNodeId());
 		}
@@ -93,7 +94,7 @@ public class ElectionManager extends Thread {
 	 * - Shibai
 	 */
 	private void declareElection () {
-		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
+		for (HeartbeatData hd : heartbeatMgr.outgoingHB.values()) {
 			// System.out.println("debug: incoming id: " + hd.getNodeId());
 
 			// System.out.println("debug: my id: " + nodeId);
@@ -117,14 +118,23 @@ public class ElectionManager extends Thread {
 
 		Management.Builder m = Management.newBuilder();
 		m.setElection(l.build());
-		System.out.println("11111111111111111");
-		Channel channel = null;
-		if (hd.isGood()) {
-			channel = hd.getChannel();
+		
+		//Channel channel = null;
+		//if (hd.isGood()) {
+			//channel = hd.getChannel();
 
 			System.out.println("22222222222222222");
-			ManagementQueue.enqueueResponse(m.build(), channel);
+			//ManagementQueue.enqueueResponse(m.build(), channel);
+			//hd.channel.writeAndFlush(m.build());
+		//}
+			
+		try {
+			hd.channel.writeAndFlush(m.build());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		
 	}
 	
 	/*
@@ -234,7 +244,7 @@ public class ElectionManager extends Thread {
 			int failure = 0;
 			while (leaderId == null && !ack) {
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(3000);
 					failure++;
 					if (failure > 3) {
 						// Broadcast: I am the new leader!

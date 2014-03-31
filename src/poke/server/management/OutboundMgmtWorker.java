@@ -39,9 +39,9 @@ public class OutboundMgmtWorker extends Thread {
 	@Override
 	public void run() {
 		while (true) {
-			if (!forever && ManagementQueue.outbound.size() == 0)
+			if (!forever && ManagementQueue.outbound.size() == 0) {
 				break;
-
+			}	
 			try {
 				// block until a message is enqueued
 				ManagementQueueEntry msg = ManagementQueue.outbound.take();
@@ -49,6 +49,7 @@ public class OutboundMgmtWorker extends Thread {
 				if (logger.isDebugEnabled())
 					logger.debug("Outbound management message received");
 
+				
 				if (msg.channel.isWritable()) {
 					boolean rtn = false;
 					if (msg.channel != null && msg.channel.isOpen() && msg.channel.isWritable()) {

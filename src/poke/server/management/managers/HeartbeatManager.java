@@ -212,7 +212,6 @@ public class HeartbeatManager extends Thread {
 					}
 				}
 				
-				
 				// ignore until we have edges with other nodes
 				if (outgoingHB.size() > 0) {
 					// TODO verify known node's status
@@ -230,7 +229,12 @@ public class HeartbeatManager extends Thread {
 
 						try {
 							logger.info("sending heartbeat");
-							hd.channel.writeAndFlush(msg);
+							
+							Management m = generateHB();
+							
+							ManagementQueue.enqueueResponse(m, hd.channel);
+							
+							//hd.channel.writeAndFlush(msg);
 							hd.setLastBeatSent(System.currentTimeMillis());
 							hd.setFailuresOnSend(0);
 							if (logger.isDebugEnabled())
