@@ -18,8 +18,10 @@ package poke.server.management;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.net.SocketAddress;
@@ -60,6 +62,8 @@ public class ManagementQueue {
 		iworker.start();
 		oworker = new OutboundMgmtWorker(tgroup, 1);
 		oworker.start();
+		
+		group = new NioEventLoopGroup();
 	}
 
 	public static void shutdown(boolean hard) {
@@ -99,23 +103,35 @@ public class ManagementQueue {
 	}
 
 	public static ChannelFuture connect(String host, int mgtPort) {
-
-		ManagementInitializer mgtini = new ManagementInitializer(false);
-		Bootstrap b = new Bootstrap();
-		b.group(group).channel(NioSocketChannel.class).handler(mgtini);
-		b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000);
-		b.option(ChannelOption.TCP_NODELAY, true);
-		b.option(ChannelOption.SO_KEEPALIVE, true);
-		channel = b.connect(host,mgtPort).syncUninterruptibly();
-		//channelf.channel().closeFuture().addListener(new QueueClosedListener());
+		
 		try {
-			channel.channel().closeFuture().sync();
-		} catch (InterruptedException e) {
+			ManagementInitializer mgtini = new ManagementInitializer(false);
+			Bootstrap b = new Bootstrap();
+			b.group(group).channel(NioSocketChannel.class).handler(mgtini);
+			b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000);
+			b.option(ChannelOption.TCP_NODELAY, true);
+			b.option(ChannelOption.SO_KEEPALIVE, true);
+			
+			channel = b.connect(host,mgtPort).syncUninterruptibly();
+			
+			channel.channel().closeFuture().addListener(new QueueClosedListener());
+			
+			System.out.println("channel: " + channel.channel());
+			return channel;
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("could not start a connection in management queue");
+			return null;
 		}
-		return channel;
+		
+	}
+	
+	public static class QueueClosedListener implements ChannelFutureListener {
 
+		@Override
+		public void operationComplete(ChannelFuture future) throws Exception {
+				channel = null;
+		}
 	}
 	
 }

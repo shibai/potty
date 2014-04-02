@@ -120,11 +120,22 @@ public class ElectionManager extends Thread {
 		Management.Builder m = Management.newBuilder();
 		m.setElection(l.build());
 		
+		logger.info("sending request");
 		
-		Channel channel = ManagementQueue.connect(hd.getHost(),hd.getPort()).channel();
 		
 		try {
-			channel.writeAndFlush(m.build());
+			//System.out.println("sending request");
+			ChannelFuture channel = ManagementQueue.connect(hd.getHost(),hd.getPort());
+			if (channel == null) return;
+			
+			if (channel.isDone() && channel.isSuccess()) {
+				//channel.channel().writeAndFlush(m.build());
+				ManagementQueue.enqueueResponse(m.build(), channel.channel());
+				logger.info("flushing");
+			}
+			
+			channel.channel().closeFuture();
+			//ManagementQueue.enqueueResponse(m.build(), channel);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
