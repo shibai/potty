@@ -47,9 +47,10 @@ public class ManagementQueue {
 	// TODO static is problematic
 	private static OutboundMgmtWorker oworker;
 	private static InboundMgmtWorker iworker;
+
 	private static ChannelFuture channel;
 	static EventLoopGroup group;
-
+	
 	// not the best method to ensure uniqueness
 	private static ThreadGroup tgroup = new ThreadGroup("ManagementQueue-"
 			+ System.nanoTime());

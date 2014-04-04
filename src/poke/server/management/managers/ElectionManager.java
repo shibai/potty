@@ -73,8 +73,8 @@ public class ElectionManager extends Thread {
 			this.votes = votes;
 
 		heartbeatMgr = HeartbeatManager.getInstance();
-		broadCastNewElection();
-		declareElection();
+		// broadCastNewElection();
+		// declareElection();
 	}
 	
 	/*
@@ -122,7 +122,7 @@ public class ElectionManager extends Thread {
 		m.setElection(l.build());
 		
 		logger.info("sending request");
-		
+	
 		
 		try {
 			//System.out.println("sending request");
@@ -220,7 +220,7 @@ public class ElectionManager extends Thread {
 	
 	private void sendAck (LeaderElection req) {
 		HeartbeatData hd = heartbeatMgr.incomingHB.get(req.getNodeId());
-		sendRequest(hd,VoteAction.NOMINATE,"ACK"); // change nominate to ack
+		sendRequest(hd,VoteAction.ABSTAIN,"ACK"); // change ABSTAIN to ACK
 		
 	}
 	
@@ -233,6 +233,9 @@ public class ElectionManager extends Thread {
 	 */
 	@Override
 	public void run () {
+		broadCastNewElection();
+		declareElection();
+		
 		while (true) {
 			// check failures of leader
 			while (leaderId != nodeId && leaderId != null) {
