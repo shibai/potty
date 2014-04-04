@@ -45,8 +45,6 @@ public class ManagementQueue {
 	// TODO static is problematic
 	private static OutboundMgmtWorker oworker;
 	private static InboundMgmtWorker iworker;
-	private static ChannelFuture channel;
-	static EventLoopGroup group;
 
 	// not the best method to ensure uniqueness
 	private static ThreadGroup tgroup = new ThreadGroup("ManagementQueue-"
@@ -96,26 +94,6 @@ public class ManagementQueue {
 		public Management req;
 		public Channel channel;
 		SocketAddress sa;
-	}
-
-	public static ChannelFuture connect(String host, int mgtPort) {
-
-		ManagementInitializer mgtini = new ManagementInitializer(false);
-		Bootstrap b = new Bootstrap();
-		b.group(group).channel(NioSocketChannel.class).handler(mgtini);
-		b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000);
-		b.option(ChannelOption.TCP_NODELAY, true);
-		b.option(ChannelOption.SO_KEEPALIVE, true);
-		channel = b.connect(host,mgtPort).syncUninterruptibly();
-		//channelf.channel().closeFuture().addListener(new QueueClosedListener());
-		try {
-			channel.channel().closeFuture().sync();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return channel;
-
 	}
 	
 }
