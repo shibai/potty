@@ -57,12 +57,13 @@ public class OutboundMgmtWorker extends Thread {
 						ChannelFuture cf = msg.channel.write(msg);
 
 						// blocks on write - use listener to be async
-						//System.out.println("Ready!!!!");
-						cf.awaitUninterruptibly(5001);
-						System.out.println("Ready!!!!");
+						cf.awaitUninterruptibly(3001);
 						rtn = cf.isSuccess();
-						if (!rtn)
+						if (!rtn) {
 							ManagementQueue.outbound.putFirst(msg);
+						}else {
+							System.out.println("outbound flushing");;
+						}
 					}
 
 				} else

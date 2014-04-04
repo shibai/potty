@@ -85,7 +85,8 @@ public class ElectionManager extends Thread {
 		myElection = true;
 		ack = false;
 		leaderId = null;
-		for (HeartbeatData hd : heartbeatMgr.outgoingHB.values()) {
+		System.out.println(nodeId + ": delcare a new election");
+		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
 			sendRequest(hd, VoteAction.ELECTION,"New election!!");
 			// System.out.println("broadcasting: " + hd.getNodeId());
 		}
@@ -93,14 +94,12 @@ public class ElectionManager extends Thread {
 	
 	/*
 	 * send declaration to all higher ids
+	 * nominating
 	 * - Shibai
 	 */
 	private void declareElection () {
-		for (HeartbeatData hd : heartbeatMgr.outgoingHB.values()) {
-			// System.out.println("debug: incoming id: " + hd.getNodeId());
-
-			// System.out.println("debug: my id: " + nodeId);
-			
+		System.out.println(nodeId + ": nominating");
+		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
 			if (compIds(hd.getNodeId(), nodeId)) {
 				sendRequest(hd, VoteAction.NOMINATE,"Nomination!");
 			}
@@ -125,20 +124,16 @@ public class ElectionManager extends Thread {
 	
 		
 		try {
-			//System.out.println("sending request");
 			ChannelFuture channel = ManagementQueue.connect(hd.getHost(),hd.getMgmtport());
-			System.out.println("host: " + hd.getHost() + "  port: " + hd.getMgmtport());
 			if (channel == null) return;
 			
 			if (channel.isDone() && channel.isSuccess()) {
-				ManagementQueueEntry entry = new ManagementQueueEntry(m.build(),channel.channel(),null);
-				channel.channel().writeAndFlush(entry);
+				channel.channel().writeAndFlush(m.build());
 				//ManagementQueue.enqueueResponse(m.build(), channel.channel());
 				logger.info("flushing");
 			}
 			
 			channel.channel().closeFuture();
-			//ManagementQueue.enqueueResponse(m.build(), channel);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -162,8 +157,6 @@ public class ElectionManager extends Thread {
 	 * @param args
 	 */
 	public void processRequest(LeaderElection req) {
-		System.out.println("!!!! get a leaderelection request!!!!!!");
-		
 		if (req == null)
 			return;
 
@@ -177,6 +170,7 @@ public class ElectionManager extends Thread {
 
 		if (req.getVote().getNumber() == VoteAction.ELECTION_VALUE) {
 			// an election is declared!
+			System.out.println("received some one's election");
 			myElection = false;
 			leaderId = null;
 			ack = false;
@@ -188,18 +182,21 @@ public class ElectionManager extends Thread {
 		} else if (req.getVote().getNumber() == VoteAction.DECLAREWINNER_VALUE) {
 			// some node declared themself the leader
 			// set leader
+			System.out.println("some node declared itself the leader");
 			leaderId = req.getNodeId();
 			myElection = false;
 			ack = false;
 			System.out.println("ok, new leader is: " + leaderId);
 		} else if (req.getVote().getNumber() == VoteAction.ABSTAIN_VALUE) {
 			// for some reason, I decline to vote
-			// work as ack for now
+			// work as an ack for now
+			System.out.println("received ack, set flag to true");
 			ack = true;
 			
 		} else if (req.getVote().getNumber() == VoteAction.NOMINATE_VALUE) {
 			// send back acks if necessary 
-			// send out request and set timeout 	
+			// send out request and set timeout 
+			System.out.println("received nomination");
 			int comparedToMe = req.getNodeId().compareTo(nodeId);
 			if (comparedToMe == -1) {
 				// Someone else has a higher priority, forward nomination
@@ -220,10 +217,9 @@ public class ElectionManager extends Thread {
 	
 	private void sendAck (LeaderElection req) {
 		HeartbeatData hd = heartbeatMgr.incomingHB.get(req.getNodeId());
+		System.out.println("send back acks");
 		sendRequest(hd,VoteAction.ABSTAIN,"ACK"); // change ABSTAIN to ACK
-		
 	}
-	
 	
 	/*
 	 * 
@@ -240,14 +236,15 @@ public class ElectionManager extends Thread {
 			// check failures of leader
 			while (leaderId != nodeId && leaderId != null) {
 				try {
-					Thread.sleep(2000);
+					Thread.sleep(3000);
 					HeartbeatData hd = heartbeatMgr.incomingHB.get(leaderId);
 					// if failures are detected, start a new election
-					if (hd.getFailures() > 2) {
+					if (hd.getFailures() > 3) {
 						broadCastNewElection();
 						declareElection();
 					}
 				} catch (Exception e) {
+					System.out.println("error in checking for failure");
 					break;
 				}
 			}
@@ -258,8 +255,8 @@ public class ElectionManager extends Thread {
 				try {
 					Thread.sleep(3000);
 					failure++;
-					if (failure > 3) {
-						// Broadcast: I am the new leader!
+					if (failure > 5) {
+						// no ack received, broadcast: I am the new leader!
 						leaderId = nodeId;
 						for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
 							sendRequest(hd, VoteAction.DECLAREWINNER,"I am the new leader!!");
@@ -268,7 +265,8 @@ public class ElectionManager extends Thread {
 						break;
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					// e.printStackTrace();
+					System.out.println("error in waiting for acks");
 					break;
 				}
 			}

@@ -78,7 +78,6 @@ public class InboundMgmtWorker extends Thread {
 					logger.debug("Inbound management message received");
 
 				Management req = (Management) msg.req;
-				System.out.println("inbound msg!!!!!");
 				if (req.hasBeat()) {
 					/**
 					 * Incoming: this is from a node that this node requested to
@@ -89,7 +88,7 @@ public class InboundMgmtWorker extends Thread {
 					 * Incoming are connections this node establishes, which is
 					 * handled by the HeartbeatConnector.
 					 */
-					System.out.println("heartbeat");
+					// System.out.println("heartbeat");
 					HeartbeatManager.getInstance().processRequest(req.getBeat());
 				} else if (req.hasElection()) {
 					System.out.println("Election");

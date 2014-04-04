@@ -30,6 +30,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import poke.server.management.ManagementInitializer;
+import poke.server.management.ManagementQueue;
 import eye.Comm.Management;
 import eye.Comm.Network;
 import eye.Comm.Network.NetworkAction;
@@ -127,8 +129,12 @@ public class HeartMonitor {
 		// Start the connection attempt.
 		if (channel == null) {
 			try {
-				handler = new MonitorHandler();
-				MonitorInitializer mi = new MonitorInitializer(handler, false);
+				// handler = new MonitorHandler();
+				// MonitorInitializer mi = new MonitorInitializer(handler, false);
+				
+				// use management queue to handle received heartbeat
+				// - Shibai
+				ManagementInitializer mi = new ManagementInitializer(false);
 
 				// handler = new Managementhandler();
 				
@@ -201,7 +207,10 @@ public class HeartMonitor {
 			n.setAction(NetworkAction.NODEJOIN);
 			Management.Builder m = Management.newBuilder();
 			m.setGraph(n.build());
-			ch.writeAndFlush(m.build());
+			
+			ManagementQueue.enqueueResponse(m.build(), ch);
+			
+			//ch.writeAndFlush(m.build());
 			rtn = true;
 			logger.info("join message sent");
 		} catch (Exception e) {

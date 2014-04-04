@@ -98,7 +98,11 @@ public class HeartbeatManager extends Thread {
 		if (req == null)
 			return;
 
-		HeartbeatData hd = incomingHB.get(nodeId);
+		// HeartbeatData hd = incomingHB.get(nodeId);
+		// changed to the following
+		// - Shibai
+		HeartbeatData hd = incomingHB.get(req.getNodeId());
+		
 		if (hd == null) {
 			logger.error("Unknown heartbeat received from node ", nodeId);
 			return;

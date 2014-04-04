@@ -117,7 +117,6 @@ public class ManagementQueue {
 			
 			channel.channel().closeFuture().addListener(new QueueClosedListener());
 			
-			System.out.println("channel: " + channel.channel());
 			return channel;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
