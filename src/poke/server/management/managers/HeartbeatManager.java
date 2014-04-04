@@ -232,9 +232,9 @@ public class HeartbeatManager extends Thread {
 							
 							Management m = generateHB();
 							
-							ManagementQueue.enqueueResponse(m, hd.channel);
-							
-							//hd.channel.writeAndFlush(msg);
+							// ManagementQueue.enqueueResponse(m, hd.channel);
+							// System.out.println(hd.channel);
+							hd.channel.writeAndFlush(msg);
 							hd.setLastBeatSent(System.currentTimeMillis());
 							hd.setFailuresOnSend(0);
 							if (logger.isDebugEnabled())

@@ -45,17 +45,19 @@ public class OutboundMgmtWorker extends Thread {
 			try {
 				// block until a message is enqueued
 				ManagementQueueEntry msg = ManagementQueue.outbound.take();
-
+				
 				if (logger.isDebugEnabled())
 					logger.debug("Outbound management message received");
 
 				
 				if (msg.channel.isWritable()) {
+					
 					boolean rtn = false;
 					if (msg.channel != null && msg.channel.isOpen() && msg.channel.isWritable()) {
 						ChannelFuture cf = msg.channel.write(msg);
 
 						// blocks on write - use listener to be async
+						System.out.println("Ready!!!!");
 						cf.awaitUninterruptibly();
 						rtn = cf.isSuccess();
 						if (!rtn)
