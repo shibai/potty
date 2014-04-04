@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import poke.server.management.ManagementQueue;
+import poke.server.management.ManagementQueue.ManagementQueueEntry;
 import eye.Comm.Heartbeat;
 import eye.Comm.LeaderElection;
 import eye.Comm.Management;
@@ -125,12 +126,14 @@ public class ElectionManager extends Thread {
 		
 		try {
 			//System.out.println("sending request");
-			ChannelFuture channel = ManagementQueue.connect(hd.getHost(),hd.getPort());
+			ChannelFuture channel = ManagementQueue.connect(hd.getHost(),hd.getMgmtport());
+			System.out.println("host: " + hd.getHost() + "  port: " + hd.getMgmtport());
 			if (channel == null) return;
 			
 			if (channel.isDone() && channel.isSuccess()) {
-				//channel.channel().writeAndFlush(m.build());
-				ManagementQueue.enqueueResponse(m.build(), channel.channel());
+				ManagementQueueEntry entry = new ManagementQueueEntry(m.build(),channel.channel(),null);
+				channel.channel().writeAndFlush(entry);
+				//ManagementQueue.enqueueResponse(m.build(), channel.channel());
 				logger.info("flushing");
 			}
 			

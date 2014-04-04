@@ -130,6 +130,8 @@ public class HeartMonitor {
 				handler = new MonitorHandler();
 				MonitorInitializer mi = new MonitorInitializer(handler, false);
 
+				// handler = new Managementhandler();
+				
 				Bootstrap b = new Bootstrap();
 				// @TODO newFixedThreadPool(2);
 				b.group(group).channel(NioSocketChannel.class).handler(mi);
