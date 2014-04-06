@@ -88,7 +88,6 @@ public class ElectionManager extends Thread {
 		System.out.println(nodeId + ": delcare a new election");
 		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
 			sendRequest(hd, VoteAction.ELECTION,"New election!!");
-			// System.out.println("broadcasting: " + hd.getNodeId());
 		}
 	}
 	
@@ -101,6 +100,7 @@ public class ElectionManager extends Thread {
 		System.out.println(nodeId + ": nominating");
 		for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {
 			if (compIds(hd.getNodeId(), nodeId)) {
+				System.out.println("sending nomination to: " + hd.getNodeId());
 				sendRequest(hd, VoteAction.NOMINATE,"Nomination!");
 			}
 		}
@@ -197,6 +197,17 @@ public class ElectionManager extends Thread {
 			// send back acks if necessary 
 			// send out request and set timeout 
 			System.out.println("received nomination");
+			if (!myElection) {
+				System.out.println("sending back acks");
+				myElection = true;
+				sendAck(req);
+				declareElection();
+			}
+			
+			/* 
+			 * comment out prof's code
+			
+			
 			int comparedToMe = req.getNodeId().compareTo(nodeId);
 			if (comparedToMe == -1) {
 				// Someone else has a higher priority, forward nomination
@@ -205,12 +216,14 @@ public class ElectionManager extends Thread {
 			} else if (comparedToMe == 1) {
 				// I have a higher priority, nominate myself
 				// TODO nominate myself
+				System.out.println("ready to have my election");
 				if (!myElection) {
 					myElection = true;
 					sendAck(req);
 					declareElection();
 				}
 			}
+			*/
 		} // else if receive acks, set flag to true
 	}
 	
@@ -234,12 +247,13 @@ public class ElectionManager extends Thread {
 		
 		while (true) {
 			// check failures of leader
+			// if failures are detected, start a new election
+			// in which it resets myelection to true, ack to false, leaderId to null
 			while (leaderId != nodeId && leaderId != null) {
 				try {
 					Thread.sleep(3000);
 					HeartbeatData hd = heartbeatMgr.incomingHB.get(leaderId);
-					// if failures are detected, start a new election
-					if (hd.getFailures() > 3) {
+					if (leaderId != nodeId && leaderId != null && hd.getFailures() > 3) {
 						broadCastNewElection();
 						declareElection();
 					}
@@ -255,7 +269,7 @@ public class ElectionManager extends Thread {
 				try {
 					Thread.sleep(3000);
 					failure++;
-					if (failure > 5) {
+					if (leaderId == null && !ack && failure > 5) {
 						// no ack received, broadcast: I am the new leader!
 						leaderId = nodeId;
 						for (HeartbeatData hd : heartbeatMgr.incomingHB.values()) {

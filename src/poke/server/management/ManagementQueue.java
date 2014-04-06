@@ -109,7 +109,7 @@ public class ManagementQueue {
 			ManagementInitializer mgtini = new ManagementInitializer(false);
 			Bootstrap b = new Bootstrap();
 			b.group(group).channel(NioSocketChannel.class).handler(mgtini);
-			b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000);
+			b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000);
 			b.option(ChannelOption.TCP_NODELAY, true);
 			b.option(ChannelOption.SO_KEEPALIVE, true);
 			
@@ -130,7 +130,8 @@ public class ManagementQueue {
 
 		@Override
 		public void operationComplete(ChannelFuture future) throws Exception {
-				channel = null;
+			System.out.println("listener!!");
+			channel = null;
 		}
 	}
 	

@@ -16,6 +16,7 @@
 package poke.server.management;
 
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,16 +55,29 @@ public class OutboundMgmtWorker extends Thread {
 					
 					boolean rtn = false;
 					if (msg.channel != null && msg.channel.isOpen() && msg.channel.isWritable()) {
-						ChannelFuture cf = msg.channel.write(msg);
+						msg.channel.writeAndFlush(msg.req);
+						/*
+						ChannelFuture cf = msg.channel.write(msg.req).addListener(new ChannelFutureListener() {
+							@Override
+							public void operationComplete (ChannelFuture f) throws Exception{
+								if (f.isSuccess()) {
+									System.out.println("SSSSS");
+								}// else System.out.println("fffffffff");
+							}
+						});
 
 						// blocks on write - use listener to be async
-						cf.awaitUninterruptibly(3001);
+						cf.awaitUninterruptibly();
+						//System.out.println("im here!!!");
 						rtn = cf.isSuccess();
+						//System.out.println(rtn);
 						if (!rtn) {
 							ManagementQueue.outbound.putFirst(msg);
+							System.out.println("FFFF");
 						}else {
-							System.out.println("outbound flushing");;
+							System.out.println("outbound flushing");
 						}
+						*/
 					}
 
 				} else

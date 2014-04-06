@@ -144,12 +144,11 @@ public class HeartMonitor {
 				b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000);
 				b.option(ChannelOption.TCP_NODELAY, true);
 				b.option(ChannelOption.SO_KEEPALIVE, true);
-
 				// Make the connection attempt.
 				channel = b.connect(host, port).syncUninterruptibly();
 				channel.awaitUninterruptibly(5000l);
 				channel.channel().closeFuture().addListener(new MonitorClosedListener(this));
-
+				
 				if (N == Integer.MAX_VALUE)
 					N = 1;
 				else
@@ -207,10 +206,9 @@ public class HeartMonitor {
 			n.setAction(NetworkAction.NODEJOIN);
 			Management.Builder m = Management.newBuilder();
 			m.setGraph(n.build());
+			// ManagementQueue.enqueueResponse(m.build(), ch);
 			
-			ManagementQueue.enqueueResponse(m.build(), ch);
-			
-			//ch.writeAndFlush(m.build());
+			ch.writeAndFlush(m.build());
 			rtn = true;
 			logger.info("join message sent");
 		} catch (Exception e) {
