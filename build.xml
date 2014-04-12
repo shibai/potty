@@ -38,6 +38,7 @@
 			<src path="${src.dir}" />
 			<classpath refid="project.classpath" />
 		</javac>
+		<copy file="${config.dir}/hibernate.cfg.xml" todir="${build.dir}"/>
 	</target>
 
 	<target name="build.test" depends="build">
@@ -46,6 +47,8 @@
 			<classpath refid="project.classpath" />
 		</javac>
 	</target>
+
+
 
 	<!-- ================================================================= -->
 

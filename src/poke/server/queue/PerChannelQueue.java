@@ -33,6 +33,7 @@ import com.google.protobuf.GeneratedMessage;
 
 import eye.Comm.PokeStatus;
 import eye.Comm.Request;
+import eye.Comm.Response;
 
 /**
  * A server queue exists for each connection (channel). A per-channel queue
@@ -70,6 +71,8 @@ public class PerChannelQueue implements ChannelQueue {
 	}
 
 	protected void init() {
+	System.out.println("PerChannelQueue");	
+		System.out.println("Abi" + tgroup.getName());
 		inbound = new LinkedBlockingDeque<com.google.protobuf.GeneratedMessage>();
 		outbound = new LinkedBlockingDeque<com.google.protobuf.GeneratedMessage>();
 
@@ -129,6 +132,7 @@ public class PerChannelQueue implements ChannelQueue {
 	@Override
 	public void enqueueRequest(Request req, Channel notused) {
 		try {
+		System.out.println(req);
 			inbound.put(req);
 		} catch (InterruptedException e) {
 			logger.error("message not enqueued for processing", e);
@@ -146,6 +150,7 @@ public class PerChannelQueue implements ChannelQueue {
 			return;
 
 		try {
+			System.out.println("Abinaya the reply is" + reply.toString());
 			outbound.put(reply);
 		} catch (InterruptedException e) {
 			logger.error("message not enqueued for reply", e);
@@ -184,11 +189,13 @@ public class PerChannelQueue implements ChannelQueue {
 					if (conn.isWritable()) {
 						boolean rtn = false;
 						if (channel != null && channel.isOpen() && channel.isWritable()) {
-							ChannelFuture cf = channel.write(msg);
+						System.out.println("Abinaya Written msg" + msg.toString());
+							ChannelFuture cf = channel.writeAndFlush(msg);
 
 							// blocks on write - use listener to be async
 							cf.awaitUninterruptibly();
 							rtn = cf.isSuccess();
+							System.out.println("Abinaya" + rtn);
 							if (!rtn)
 								sq.outbound.putFirst(msg);
 						}
@@ -225,6 +232,7 @@ public class PerChannelQueue implements ChannelQueue {
 
 		@Override
 		public void run() {
+		System.out.println("Inbound working");
 			Channel conn = sq.channel;
 			if (conn == null || !conn.isOpen()) {
 				PerChannelQueue.logger.error("connection missing, no inbound communication");
@@ -237,6 +245,7 @@ public class PerChannelQueue implements ChannelQueue {
 
 				try {
 					// block until a message is enqueued
+					System.out.println("Abinaya try inbound run");
 					GeneratedMessage msg = sq.inbound.take();
 
 					// process request and enqueue response
@@ -246,8 +255,9 @@ public class PerChannelQueue implements ChannelQueue {
 						// do we need to route the request?
 
 						// handle it locally
+						System.out.println("Abinaya Check request " + req.getHeader());
 						Resource rsc = ResourceFactory.getInstance().resourceInstance(req.getHeader());
-
+         				System.out.println("ABI RSC : " + rsc);
 						Request reply = null;
 						if (rsc == null) {
 							logger.error("failed to obtain resource for " + req);
@@ -255,6 +265,7 @@ public class PerChannelQueue implements ChannelQueue {
 									"Request not processed");
 						} else
 							reply = rsc.process(req);
+							System.out.println("Abinaya Reply" + reply.toString());
 
 						sq.enqueueResponse(reply, null);
 					}

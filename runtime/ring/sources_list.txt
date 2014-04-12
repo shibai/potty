@@ -1,5 +1,7 @@
-/Users/shibai86/Documents/workspace/poke-netty/generated/eye/Comm.java
+/Users/shibai86/Documents/workspace/poke-netty/eye/Comm.java
 /Users/shibai86/Documents/workspace/poke-netty/src/misc/LoggingOptions.java
+/Users/shibai86/Documents/workspace/poke-netty/src/persistence/HibernateUtil.java
+/Users/shibai86/Documents/workspace/poke-netty/src/poke/bean/Course.java
 /Users/shibai86/Documents/workspace/poke-netty/src/poke/client/ClientCommand.java
 /Users/shibai86/Documents/workspace/poke-netty/src/poke/client/ClientPrintListener.java
 /Users/shibai86/Documents/workspace/poke-netty/src/poke/client/comm/CommConnection.java
