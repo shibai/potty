@@ -68,5 +68,6 @@ public class JobManager {
 	 *            The bid
 	 */
 	public void processRequest(JobBid req) {
+		
 	}
 }
