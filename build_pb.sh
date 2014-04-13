@@ -9,12 +9,17 @@
 # have change.
 #
 
-project_base="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#project_base="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # which protoc that you built
 #PROTOC_HOME=/usr/local/protobuf-2.4.1/
-PROTOC_HOME=/usr/local/protobuf-2.5.0/
+#PROTOC_HOME=/usr/local/protobuf-2.5.0/
 
-rm -r ${project_base}/generated/*
+#rm -r ${project_base}/generated/*
 
-$PROTOC_HOME/bin/protoc --proto_path=${project_base}/resources --java_out=${project_base}/generated ${project_base}/resources/comm.proto
+#$PROTOC_HOME/bin/protoc --proto_path=${project_base}/resources --java_out=${project_base}/generated ${project_base}/resources/comm.proto
+
+SRC_DIR=/Users/shibai86/Documents/workspace/poke-netty/resources
+#DST_DIR=/Users/shibai86/Documents/workspace/poke-netty
+protoc -I=$SRC_DIR --java_out=/Users/shibai86/Documents/workspace/poke-netty/generated $SRC_DIR/comm.proto
+protoc -I=$SRC_DIR --python_out=/Users/shibai86/Documents/workspace/poke-netty/python/src $SRC_DIR/comm.proto
