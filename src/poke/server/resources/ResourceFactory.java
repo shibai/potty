@@ -77,7 +77,6 @@ public class ResourceFactory {
 	public Resource resourceInstance(Header header) {
 		// is the message for this server?
 		if (header.hasToNode()) {
-			System.out.println("1111 re");
 			String iam = cfg.getServer().getProperty("node.id");
 			if (iam.equalsIgnoreCase(header.getToNode()))
 				; // fall through and process normally

@@ -57,6 +57,16 @@ public class JobResource implements Resource {
 				.getValue();
 		System.out.println("Abinaya test namespace" + nameSpace);
 
+		// propose a job
+		// ask other clusters for help
+		if(nameSpace != null && nameSpace.equals("competition")) {
+			// update dns map
+			// then forward msg to each leader
+			
+			
+			
+		} // else if receiving competition results
+		
 		if (nameSpace != null && nameSpace.equals("listcourses")) {
 			System.out.println("Hibernate");
 			Session session = HibernateUtil.getSessionFactory().openSession();

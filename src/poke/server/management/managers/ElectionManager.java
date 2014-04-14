@@ -77,6 +77,14 @@ public class ElectionManager extends Thread {
 		// declareElection();
 	}
 	
+	public boolean isLeader () {
+		return leaderId == nodeId;
+	}
+	
+	public boolean leaderDown () {
+		return leaderId == null;
+	}
+	
 	/*
 	 * Broadcast in network that a new election is coming
 	 * - Shibai

@@ -15,6 +15,7 @@
  */
 package poke.server.management.managers;
 
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import eye.Comm.JobBid;
 import eye.Comm.JobProposal;
+import eye.Comm.LeaderElection.VoteAction;
 
 /**
  * The job manager class is used by the system to assess and vote on a job. This
@@ -58,7 +60,35 @@ public class JobManager {
 	 *            The proposal
 	 */
 	public void processRequest(JobProposal req) {
-
+		// if leader receives this, it forwards it to other nodes
+		// otherwise it generates a random msg 
+		// if leader is not present, then block
+		if (ElectionManager.getInstance().leaderDown()) {
+			// block
+		}
+		if (ElectionManager.getInstance().isLeader()) {
+			for (HeartbeatData hd :  HeartbeatManager.getInstance().incomingHB.values()) {
+				// forward req 
+				
+				
+			}
+			
+			
+		}else {
+			// this receiving node should evaluate job and the load balance of itself, then make a decision
+			// at the time being, we do nothing but just rely yes or no
+			Random random = new Random(); 
+			int bid = random.nextInt(2); 
+			JobBid.Builder jbid = JobBid.newBuilder();
+			jbid.setJobId(req.getJobId());
+			jbid.setOwnerId(req.getOwnerId()); //This is the Cluster ID
+			jbid.setNameSpace(req.getNameSpace());
+			jbid.setBid(bid);
+			
+			
+		}
+		
+		
 	}
 
 	/**
